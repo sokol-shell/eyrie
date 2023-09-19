@@ -1,12 +1,12 @@
-package falconsnest
+package testdata
 
-type Engine interface {
+type IEngine interface {
 	ReadMileage() float32
 }
 
-type engine struct {
+type Engine struct {
 }
 
-func (e engine) ReadMileage() float32 {
+func (e Engine) ReadMileage() float32 {
 	return 156896.226
 }

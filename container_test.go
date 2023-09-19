@@ -1,7 +1,10 @@
 package falconsnest
 
-import "testing"
+import (
+	"falconsnest/testdata"
+	"testing"
+)
 
 func Test_Container(t *testing.T) {
-	RegisterType()
+	RegisterType[testdata.ICar, testdata.Car]().AsSingleton()
 }

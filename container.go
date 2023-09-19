@@ -1,5 +1,12 @@
 package falconsnest
 
-func RegisterType[i any]() {
+type Container struct {
+}
 
+func NewContainer() Container {
+	return Container{}
+}
+
+func RegisterType[I any, S any]() Registrar[I, S] {
+	return newRegistrar[I, S]()
 }

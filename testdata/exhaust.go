@@ -1,12 +1,12 @@
-package falconsnest
+package testdata
 
-type Exhaust interface {
+type IExhaust interface {
 	FetchExhaustType() string
 }
 
-type exhaust struct {
+type Exhaust struct {
 }
 
-func (e exhaust) FetchExhaustType() string {
+func (e Exhaust) FetchExhaustType() string {
 	return "DUAL"
 }

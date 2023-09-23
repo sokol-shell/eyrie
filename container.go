@@ -1,6 +1,7 @@
 package falconsnest
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -24,7 +25,8 @@ func Register[I any, S any]() Registrar[I, S] {
 	}
 
 	if !st.Implements(it) {
-		panic(newRegistrationError("Struct type does not implement the interface type."))
+		var msg = fmt.Sprintf("%s does not implement %s.", st.Name(), it.Name())
+		panic(newRegistrationError(msg))
 	}
 
 	return newRegistrar[I, S]()

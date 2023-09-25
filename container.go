@@ -5,11 +5,16 @@ import (
 	"reflect"
 )
 
-type Container struct {
+type Container interface {
 }
 
-func NewContainer() Container {
-	return Container{}
+type container struct {
+}
+
+var c container
+
+func GetContainer() Container {
+	return c
 }
 
 func Register[I any, S any]() Registrar[I, S] {

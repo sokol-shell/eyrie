@@ -1,4 +1,4 @@
-package falconsnest
+package container
 
 import (
 	"falconsnest/internal/configuration"

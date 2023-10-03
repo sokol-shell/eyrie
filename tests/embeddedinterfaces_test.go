@@ -1,4 +1,4 @@
-package testdata
+package tests
 
 type EmbeddedInterface1 interface {
 	Method1()

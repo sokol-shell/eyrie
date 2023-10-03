@@ -12,24 +12,31 @@ type Registrar[I any, S any] interface {
 
 type registrar[I any, S any] struct {
 	container        Container
+	constructor      func() S
 	interfaceType    reflect.Type
 	implementingType reflect.Type
 }
 
-func newRegistrar[I any, S any](c Container, interfaceType reflect.Type, implementingType reflect.Type) Registrar[I, S] {
+func newRegistrar[I any, S any](
+	c Container,
+	constructor func() S,
+	interfaceType reflect.Type,
+	implementingType reflect.Type,
+) Registrar[I, S] {
 	return registrar[I, S]{
 		container:        c,
+		constructor:      constructor,
 		interfaceType:    interfaceType,
 		implementingType: implementingType,
 	}
 }
 
 func (r registrar[I, S]) AsSingleton() {
-	config := configuration.NewSingletonConfiguration(r.interfaceType, r.implementingType)
+	config := configuration.NewSingletonConfiguration[S](r.implementingType, r.constructor)
 	r.container.addConfiguration(r.interfaceType, config)
 }
 
 func (r registrar[I, S]) AsTransient() {
-	config := configuration.NewTransientConfiguration(r.interfaceType, r.implementingType)
+	config := configuration.NewTransientConfiguration[S](r.implementingType, r.constructor)
 	r.container.addConfiguration(r.interfaceType, config)
 }

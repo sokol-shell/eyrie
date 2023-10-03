@@ -7,6 +7,10 @@ type IExhaust interface {
 type Exhaust struct {
 }
 
+func NewExhaust() Exhaust {
+	return Exhaust{}
+}
+
 func (e Exhaust) FetchExhaustType() string {
 	return "DUAL"
 }

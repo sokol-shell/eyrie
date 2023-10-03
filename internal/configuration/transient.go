@@ -2,22 +2,19 @@ package configuration
 
 import "reflect"
 
-type TransientConfiguration struct {
-	interfaceType    reflect.Type
+type TransientConfiguration[T any] struct {
 	implementingType reflect.Type
+	constructor      func() T
 }
 
-func NewTransientConfiguration(interfaceType reflect.Type, implementingType reflect.Type) TransientConfiguration {
-	return TransientConfiguration{
-		interfaceType:    interfaceType,
+func NewTransientConfiguration[T any](implementingType reflect.Type, constructor func() T) TransientConfiguration[T] {
+	return TransientConfiguration[T]{
 		implementingType: implementingType,
+		constructor:      constructor,
 	}
 }
 
-func (tc TransientConfiguration) GetInterfaceType() reflect.Type {
-	return tc.interfaceType
-}
-
-func (tc TransientConfiguration) GetLifestyle() Lifestyle {
-	return Transient
+func (tc TransientConfiguration[T]) GetOrCreateInstance() any {
+	var instance T = tc.constructor()
+	return any(instance)
 }

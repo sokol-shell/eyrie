@@ -2,22 +2,18 @@ package configuration
 
 import "reflect"
 
-type SingletonConfiguration struct {
-	interfaceType    reflect.Type
+type SingletonConfiguration[T any] struct {
 	implementingType reflect.Type
+	constructor      T
 }
 
-func NewSingletonConfiguration(interfaceType reflect.Type, implementingType reflect.Type) SingletonConfiguration {
-	return SingletonConfiguration{
-		interfaceType:    interfaceType,
+func NewSingletonConfiguration[T any](implementingType reflect.Type, constructor func() T) SingletonConfiguration[T] {
+	return SingletonConfiguration[T]{
 		implementingType: implementingType,
+		constructor:      constructor(),
 	}
 }
 
-func (sc SingletonConfiguration) GetInterfaceType() reflect.Type {
-	return sc.interfaceType
-}
-
-func (sc SingletonConfiguration) GetLifestyle() Lifestyle {
-	return Singleton
+func (sc SingletonConfiguration[T]) GetOrCreateInstance() any {
+	panic("Not implemented.")
 }

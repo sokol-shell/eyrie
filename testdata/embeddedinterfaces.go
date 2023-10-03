@@ -1,19 +1,27 @@
 package testdata
 
-type Embeddedinterface1 interface {
+type EmbeddedInterface1 interface {
 	Method1()
 }
 
-type Finalinterface1 interface {
-	Embeddedinterface1
+type FinalInterface1 interface {
+	EmbeddedInterface1
 	Method2()
 }
 
-type Embeddedinterface2 interface {
+func NewFinalInterface1() FinalInterface1 {
+	panic("Not implemented.")
+}
+
+type EmbeddedInterface2 interface {
 	Method3()
 }
 
-type Finalinterface2 interface {
+type FinalInterface2 interface {
 	Method3()
 	Method4()
+}
+
+func NewFinalInterface2() FinalInterface2 {
+	panic("Not implemented.")
 }

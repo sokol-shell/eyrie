@@ -1,6 +1,7 @@
 package container
 
 import (
+	"falconsnest/internal/configuration"
 	"fmt"
 	"reflect"
 )
@@ -30,8 +31,18 @@ func Resolve[I any]() I {
 	var interfaceType = reflect.TypeOf(i).Elem()
 
 	config := getContainer().getConfiguration(interfaceType)
-	instance := config.GetOrCreateInstance()
-	return instance.(I)
+	instance, err := config.GetOrCreateInstance()
+	if err == nil {
+		return instance.(I)
+	}
+
+	switch code := err.(*configuration.ConfigurationError).Code; code {
+	case configuration.RecursiveConstruction:
+		msg := fmt.Sprintf("Recursive construction occurred while resolving %s.", interfaceType.Name())
+		panic(newRecursiveConstructionError(msg))
+	default:
+		panic("Not reachable.")
+	}
 }
 
 func Seal() {

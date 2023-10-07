@@ -1,5 +1,5 @@
 package configuration
 
 type Configuration interface {
-	GetOrCreateInstance() any
+	GetOrCreateInstance() (any, error)
 }

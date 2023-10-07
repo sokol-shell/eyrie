@@ -83,6 +83,28 @@ func Test_ContainerSuccessfullyResolvesComplexDependencies(t *testing.T) {
 	}
 }
 
+func Test_RecursiveSingletonDependenciesDontCauseStackOverflow(t *testing.T) {
+	var expectedErrorMessage = "RecursiveConstructionError: Recursive construction occurred while resolving ifirst."
+
+	container.Register[ifirst, *first](newFirst).AsSingleton()
+	container.Register[isecond, *second](newSecond).AsSingleton()
+	container.Register[ithird, *third](newThird).AsSingleton()
+
+	defer catchPanic(t, expectedErrorMessage)
+	container.Resolve[ifirst]()
+}
+
+func Test_RecursiveTransientDependenciesDontCauseStackOverflow(t *testing.T) {
+	var expectedErrorMessage = "RecursiveConstructionError: Recursive construction occurred while resolving ifirst."
+
+	container.Register[ifirst, *first](newFirst).AsTransient()
+	container.Register[isecond, *second](newSecond).AsTransient()
+	container.Register[ithird, *third](newThird).AsTransient()
+
+	defer catchPanic(t, expectedErrorMessage)
+	container.Resolve[ifirst]()
+}
+
 func Test_CannotRegisterInterfaceToAStruct(t *testing.T) {
 	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
@@ -158,6 +180,11 @@ func catchPanic(t *testing.T, expectedErrorMessage string) {
 			}
 		case *container.SealedContainerError:
 			var actualErrorMessage = err.(*container.SealedContainerError).Error()
+			if expectedErrorMessage != actualErrorMessage {
+				t.Errorf("expected value: %v\nactual value: %v\n", expectedErrorMessage, actualErrorMessage)
+			}
+		case *container.RecursiveConstructionError:
+			var actualErrorMessage = err.(*container.RecursiveConstructionError).Error()
 			if expectedErrorMessage != actualErrorMessage {
 				t.Errorf("expected value: %v\nactual value: %v\n", expectedErrorMessage, actualErrorMessage)
 			}

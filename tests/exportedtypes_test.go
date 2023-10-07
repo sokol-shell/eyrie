@@ -1,13 +1,23 @@
 package tests
 
-type IInterface interface{}
+type IInterface interface {
+	Method1()
+}
+
+func NewIInterface() IInterface {
+	return Struct{}
+}
 
 type Struct struct {
-	object *int
+	memoryAddress *int
 }
 
 func NewStruct() Struct {
 	return Struct{
-		object: new(int),
+		memoryAddress: new(int),
 	}
+}
+
+func (s Struct) Method1() {
+	panic("Not implemented.")
 }

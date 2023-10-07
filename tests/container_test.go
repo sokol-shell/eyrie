@@ -5,14 +5,36 @@ import (
 	"testing"
 )
 
+func Test_ContainerSuccessfullyInstantiatesTwoTransientInstances(t *testing.T) {
+	container.Register[IInterface, Struct](NewStruct).AsTransient()
+
+	result1 := container.Resolve[IInterface]()
+	result2 := container.Resolve[IInterface]()
+
+	if result1.(Struct).memoryAddress == result2.(Struct).memoryAddress {
+		t.Fatalf("Transient configuration produced only one object.")
+	}
+}
+
 func Test_ContainerSuccessfullyInstantiatesOnlyOneSingletonInstance(t *testing.T) {
 	container.Register[IInterface, Struct](NewStruct).AsSingleton()
 
-	var result1 IInterface = container.Resolve[IInterface]()
-	var result2 IInterface = container.Resolve[IInterface]()
+	result1 := container.Resolve[IInterface]()
+	result2 := container.Resolve[IInterface]()
 
-	if result1.(Struct).object != result2.(Struct).object {
+	if result1.(Struct).memoryAddress != result2.(Struct).memoryAddress {
 		t.Fatalf("Singleton configuration produced two different objects.")
+	}
+}
+
+func Test_ContainerSuccessfullyRegistersAndResolvesTypesWithPointerReceivers(t *testing.T) {
+	container.Register[IPointerInterface, *PointerStruct](NewPointerStruct).AsSingleton()
+
+	result := container.Resolve[IPointerInterface]()
+
+	_, ok := result.(*PointerStruct)
+	if !ok {
+		t.Fatalf("Resolve did not return an object of the expected type.")
 	}
 }
 
@@ -42,14 +64,21 @@ func Test_CannotRegisterInterfaceToAStruct(t *testing.T) {
 	var expectedErrorMessage = "Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
-	container.Register[Car, ICar](NewICar)
+	container.Register[Struct, IInterface](NewIInterface)
+}
+
+func Test_CannotRegisterPointerToAStruct(t *testing.T) {
+	var expectedErrorMessage = "Interface and struct expected as type parameters."
+
+	defer catchPanic(t, expectedErrorMessage)
+	container.Register[PointerStruct, Struct](NewStruct)
 }
 
 func Test_CannotRegisterIfStructDoesNotImplementInterface(t *testing.T) {
 	var expectedErrorMessage = "Exhaust does not implement ICar."
 
 	defer catchPanic(t, expectedErrorMessage)
-	container.Register[ICar, Exhaust](NewExhaust)
+	container.Register[IInterface, Struct](NewStruct)
 }
 
 func Test_CannotRegisterInterfaceWhichImplementsEmbeddedInterface1(t *testing.T) {

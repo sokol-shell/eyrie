@@ -56,7 +56,7 @@ func Register[I any, S any](constructor func() S) Registrar[I, S] {
 	var ik = it.Kind()
 	var sk = st.Kind()
 
-	if ik != reflect.Interface || sk != reflect.Struct {
+	if ik != reflect.Interface || (sk != reflect.Struct && sk != reflect.Pointer) {
 		panic(newRegistrationError("Interface and struct expected as type parameters."))
 	}
 

@@ -43,10 +43,6 @@ type ICar interface {
 	GetMileage() float32
 }
 
-func NewICar() ICar {
-	return Car{}
-}
-
 type Car struct {
 	engine  IEngine
 	exhaust IExhaust

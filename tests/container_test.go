@@ -6,23 +6,23 @@ import (
 )
 
 func Test_ContainerSuccessfullyInstantiatesTwoTransientInstances(t *testing.T) {
-	container.Register[IInterface, Struct](NewStruct).AsTransient()
+	container.Register[IInterface, Implementation](NewStruct).AsTransient()
 
 	result1 := container.Resolve[IInterface]()
 	result2 := container.Resolve[IInterface]()
 
-	if result1.(Struct).memoryAddress == result2.(Struct).memoryAddress {
+	if result1.(Implementation).memoryAddress == result2.(Implementation).memoryAddress {
 		t.Fatalf("Transient configuration produced only one object.")
 	}
 }
 
 func Test_ContainerSuccessfullyInstantiatesOnlyOneSingletonInstance(t *testing.T) {
-	container.Register[IInterface, Struct](NewStruct).AsSingleton()
+	container.Register[IInterface, Implementation](NewStruct).AsSingleton()
 
 	result1 := container.Resolve[IInterface]()
 	result2 := container.Resolve[IInterface]()
 
-	if result1.(Struct).memoryAddress != result2.(Struct).memoryAddress {
+	if result1.(Implementation).memoryAddress != result2.(Implementation).memoryAddress {
 		t.Fatalf("Singleton configuration produced two different objects.")
 	}
 }
@@ -39,11 +39,11 @@ func Test_ContainerSuccessfullyRegistersAndResolvesTypesWithPointerReceivers(t *
 }
 
 func Test_ContainerSuccessfullyRegistersAndResolvesExportedTypesAndConstructors(t *testing.T) {
-	container.Register[IInterface, Struct](NewStruct).AsTransient()
+	container.Register[IInterface, Implementation](NewStruct).AsTransient()
 
 	result := container.Resolve[IInterface]()
 
-	_, ok := result.(Struct)
+	_, ok := result.(Implementation)
 	if !ok {
 		t.Fatalf("Resolve did not return an object of the expected type.")
 	}
@@ -60,25 +60,43 @@ func Test_ContainerSuccessfullyRegistersAndResolvesUnexportedTypesAndConstructor
 	}
 }
 
+func Test_ContainerSuccessfullyRegistersAndResolvesInterfacesAndEmbeddedStructs(t *testing.T) {
+	container.Register[IInterface1, FullImplementation](NewFullImplementation).AsSingleton()
+
+	result := container.Resolve[IInterface1]()
+
+	_, ok := result.(FullImplementation)
+	if !ok {
+		t.Fatalf("Resolve did not return an object of the expected type.")
+	}
+}
+
 func Test_CannotRegisterInterfaceToAStruct(t *testing.T) {
 	var expectedErrorMessage = "Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
-	container.Register[Struct, IInterface](NewIInterface)
+	container.Register[Implementation, IInterface](NewIInterface)
 }
 
 func Test_CannotRegisterPointerToAStruct(t *testing.T) {
 	var expectedErrorMessage = "Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
-	container.Register[PointerStruct, Struct](NewStruct)
+	container.Register[*PointerStruct, Implementation](NewStruct)
+}
+
+func Test_CannotRegisterPointerToAPointer(t *testing.T) {
+	var expectedErrorMessage = "Interface and struct expected as type parameters."
+
+	defer catchPanic(t, expectedErrorMessage)
+	container.Register[*PointerStruct, *PointerStruct](NewPointerStruct)
 }
 
 func Test_CannotRegisterIfStructDoesNotImplementInterface(t *testing.T) {
 	var expectedErrorMessage = "Exhaust does not implement ICar."
 
 	defer catchPanic(t, expectedErrorMessage)
-	container.Register[IInterface, Struct](NewStruct)
+	container.Register[IInterface, Implementation](NewStruct)
 }
 
 func Test_CannotRegisterInterfaceWhichImplementsEmbeddedInterface1(t *testing.T) {

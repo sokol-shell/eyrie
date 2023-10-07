@@ -5,19 +5,19 @@ type IInterface interface {
 }
 
 func NewIInterface() IInterface {
-	return Struct{}
+	return Implementation{}
 }
 
-type Struct struct {
+type Implementation struct {
 	memoryAddress *int
 }
 
-func NewStruct() Struct {
-	return Struct{
+func NewStruct() Implementation {
+	return Implementation{
 		memoryAddress: new(int),
 	}
 }
 
-func (s Struct) Method1() {
+func (s Implementation) Method1() {
 	panic("Not implemented.")
 }

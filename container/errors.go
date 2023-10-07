@@ -29,3 +29,13 @@ func newResolveError(msg string) *ResolveError {
 func (re *ResolveError) Error() string {
 	return fmt.Sprintf("ResolveError: %s", re.Msg)
 }
+
+type SealedContainerError struct{}
+
+func newSealedContainerError() *SealedContainerError {
+	return &SealedContainerError{}
+}
+
+func (sce *SealedContainerError) Error() string {
+	return fmt.Sprintf("SealedContainerError: Cannot register a new type to a sealed container.")
+}

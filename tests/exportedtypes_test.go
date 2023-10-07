@@ -12,7 +12,7 @@ type Implementation struct {
 	memoryAddress *int
 }
 
-func NewStruct() Implementation {
+func NewImplementation() Implementation {
 	return Implementation{
 		memoryAddress: new(int),
 	}

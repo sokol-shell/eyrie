@@ -6,7 +6,7 @@ import (
 )
 
 func Test_ContainerSuccessfullyInstantiatesTwoTransientInstances(t *testing.T) {
-	container.Register[IInterface, Implementation](NewStruct).AsTransient()
+	container.Register[IInterface, Implementation](NewImplementation).AsTransient()
 
 	result1 := container.Resolve[IInterface]()
 	result2 := container.Resolve[IInterface]()
@@ -17,7 +17,7 @@ func Test_ContainerSuccessfullyInstantiatesTwoTransientInstances(t *testing.T) {
 }
 
 func Test_ContainerSuccessfullyInstantiatesOnlyOneSingletonInstance(t *testing.T) {
-	container.Register[IInterface, Implementation](NewStruct).AsSingleton()
+	container.Register[IInterface, Implementation](NewImplementation).AsSingleton()
 
 	result1 := container.Resolve[IInterface]()
 	result2 := container.Resolve[IInterface]()
@@ -39,7 +39,7 @@ func Test_ContainerSuccessfullyRegistersAndResolvesTypesWithPointerReceivers(t *
 }
 
 func Test_ContainerSuccessfullyRegistersAndResolvesExportedTypesAndConstructors(t *testing.T) {
-	container.Register[IInterface, Implementation](NewStruct).AsTransient()
+	container.Register[IInterface, Implementation](NewImplementation).AsTransient()
 
 	result := container.Resolve[IInterface]()
 
@@ -71,46 +71,75 @@ func Test_ContainerSuccessfullyRegistersAndResolvesInterfacesAndEmbeddedStructs(
 	}
 }
 
+func Test_ContainerSuccessfullyResolvesComplexDependencies(t *testing.T) {
+	container.Register[ICar, *Car](NewCar).AsTransient()
+	container.Register[IExhaust, *Exhaust](NewExhaust).AsTransient()
+	container.Register[IEngine, *Engine](NewEngine).AsTransient()
+
+	car := container.Resolve[ICar]()
+
+	if car.GetExhaustType() != "DUAL" || car.GetEngineMileage() != 156896.226 {
+		t.Fatalf("Container did not properly resolve sub-dependencies.")
+	}
+}
+
 func Test_CannotRegisterInterfaceToAStruct(t *testing.T) {
-	var expectedErrorMessage = "Interface and struct expected as type parameters."
+	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
 	container.Register[Implementation, IInterface](NewIInterface)
 }
 
 func Test_CannotRegisterPointerToAStruct(t *testing.T) {
-	var expectedErrorMessage = "Interface and struct expected as type parameters."
+	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
-	container.Register[*PointerStruct, Implementation](NewStruct)
+	container.Register[*PointerStruct, Implementation](NewImplementation)
 }
 
 func Test_CannotRegisterPointerToAPointer(t *testing.T) {
-	var expectedErrorMessage = "Interface and struct expected as type parameters."
+	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
 	container.Register[*PointerStruct, *PointerStruct](NewPointerStruct)
 }
 
 func Test_CannotRegisterIfStructDoesNotImplementInterface(t *testing.T) {
-	var expectedErrorMessage = "Exhaust does not implement ICar."
+	var expectedErrorMessage = "RegistrationError: implementation does not implement IInterface."
 
 	defer catchPanic(t, expectedErrorMessage)
-	container.Register[IInterface, Implementation](NewStruct)
+	container.Register[IInterface, implementation](newImplementation)
 }
 
 func Test_CannotRegisterInterfaceWhichImplementsEmbeddedInterface1(t *testing.T) {
-	var expectedErrorMessage = "Interface and struct expected as type parameters."
+	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
 	container.Register[EmbeddedInterface1, FinalInterface1](NewFinalInterface1)
 }
 
 func Test_CannotRegisterInterfaceWhichImplementsEmbeddedInterface2(t *testing.T) {
-	var expectedErrorMessage = "Interface and struct expected as type parameters."
+	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
 	container.Register[EmbeddedInterface2, FinalInterface2](NewFinalInterface2)
+}
+
+func Test_CannotResolveTypeWhichWasNotRegistered(t *testing.T) {
+	var expectedErrorMessage = "ResolveError: Could not resolve EmbeddedInterface1. Not found."
+
+	defer catchPanic(t, expectedErrorMessage)
+	container.Resolve[EmbeddedInterface1]()
+}
+
+func Test_CannotRegisterAfterFirstResolveWasDone(t *testing.T) {
+	var expectedErrorMessage = "SealedContainerError: Cannot register a new type to a sealed container."
+
+	container.Register[IInterface, Implementation](NewImplementation).AsSingleton()
+	container.Seal()
+
+	defer catchPanic(t, expectedErrorMessage)
+	container.Register[iinterface, implementation](newImplementation).AsSingleton()
 }
 
 func catchPanic(t *testing.T, expectedErrorMessage string) {
@@ -118,7 +147,17 @@ func catchPanic(t *testing.T, expectedErrorMessage string) {
 	if err := recover(); err != nil {
 		switch err.(type) {
 		case *container.RegistrationError:
-			var actualErrorMessage = err.(*container.RegistrationError).Msg
+			var actualErrorMessage = err.(*container.RegistrationError).Error()
+			if expectedErrorMessage != actualErrorMessage {
+				t.Errorf("expected value: %v\nactual value: %v\n", expectedErrorMessage, actualErrorMessage)
+			}
+		case *container.ResolveError:
+			var actualErrorMessage = err.(*container.ResolveError).Error()
+			if expectedErrorMessage != actualErrorMessage {
+				t.Errorf("expected value: %v\nactual value: %v\n", expectedErrorMessage, actualErrorMessage)
+			}
+		case *container.SealedContainerError:
+			var actualErrorMessage = err.(*container.SealedContainerError).Error()
 			if expectedErrorMessage != actualErrorMessage {
 				t.Errorf("expected value: %v\nactual value: %v\n", expectedErrorMessage, actualErrorMessage)
 			}

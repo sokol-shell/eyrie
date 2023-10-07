@@ -5,12 +5,23 @@ import (
 	"testing"
 )
 
+func Test_ContainerSuccessfullyInstantiatesOnlyOneSingletonInstance(t *testing.T) {
+	container.Register[IInterface, Struct](NewStruct).AsSingleton()
+
+	var result1 IInterface = container.Resolve[IInterface]()
+	var result2 IInterface = container.Resolve[IInterface]()
+
+	if result1.(Struct).object != result2.(Struct).object {
+		t.Fatalf("Singleton configuration produced two different objects.")
+	}
+}
+
 func Test_ContainerSuccessfullyRegistersAndResolvesExportedTypesAndConstructors(t *testing.T) {
-	container.Register[IExhaust, Exhaust](NewExhaust).AsTransient()
+	container.Register[IInterface, Struct](NewStruct).AsTransient()
 
-	result := container.Resolve[IExhaust]()
+	result := container.Resolve[IInterface]()
 
-	_, ok := result.(Exhaust)
+	_, ok := result.(Struct)
 	if !ok {
 		t.Fatalf("Resolve did not return an object of the expected type.")
 	}

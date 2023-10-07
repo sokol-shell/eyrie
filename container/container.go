@@ -26,15 +26,15 @@ func GetContainer() Container {
 		}
 	}
 
-	return c
+	return &c
 }
 
-func (c container) addConfiguration(typ reflect.Type, config configuration.Configuration) {
+func (c *container) addConfiguration(typ reflect.Type, config configuration.Configuration) {
 	key := c.generateKey(typ)
 	c.configurations[key] = config
 }
 
-func (c container) getConfiguration(typ reflect.Type) configuration.Configuration {
+func (c *container) getConfiguration(typ reflect.Type) configuration.Configuration {
 	key := c.generateKey(typ)
 	config, ok := c.configurations[key]
 	if ok {
@@ -44,7 +44,7 @@ func (c container) getConfiguration(typ reflect.Type) configuration.Configuratio
 	panic(newResolveError(fmt.Sprintf("Could not resolve %s. Not found.", typ.Name())))
 }
 
-func (c container) generateKey(typ reflect.Type) string {
+func (c *container) generateKey(typ reflect.Type) string {
 	return typ.PkgPath() + "/" + typ.Name()
 }
 

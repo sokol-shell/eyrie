@@ -2,7 +2,7 @@ package container
 
 import (
 	"fmt"
-	"github.com/ivan-ivkovic/falconsnest/internal/configuration"
+	"github.com/ivan-ivkovic/eyrie/internal/configuration"
 	"reflect"
 )
 

@@ -1,6 +1,6 @@
 package tests
 
-import "github.com/ivan-ivkovic/falconsnest/container"
+import "github.com/ivan-ivkovic/eyrie/container"
 
 // #region IEngine -> Engine
 type IEngine interface {

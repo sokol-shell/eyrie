@@ -1,8 +1,8 @@
 package container
 
 import (
-	"falconsnest/internal/configuration"
 	"fmt"
+	"github.com/ivan-ivkovic/falconsnest/internal/configuration"
 	"reflect"
 )
 

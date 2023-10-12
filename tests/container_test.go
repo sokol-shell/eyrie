@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"falconsnest/container"
+	"github.com/ivan-ivkovic/falconsnest/container"
 	"testing"
 )
 

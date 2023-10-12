@@ -1,6 +1,6 @@
 package tests
 
-import "falconsnest/container"
+import "github.com/ivan-ivkovic/falconsnest/container"
 
 type ifirst interface {
 	first()

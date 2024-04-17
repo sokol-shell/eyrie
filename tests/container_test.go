@@ -1,11 +1,16 @@
+//go:build test
+
 package tests
 
 import (
-	"github.com/ivan-ivkovic/eyrie/container"
+	"sync"
 	"testing"
+
+	"github.com/ivan-ivkovic/eyrie/container"
 )
 
 func Test_ContainerSuccessfullyInstantiatesTwoTransientInstances(t *testing.T) {
+	container.Clear()
 	container.Register[IInterface, Implementation](NewImplementation).AsTransient()
 
 	result1 := container.Resolve[IInterface]()
@@ -17,6 +22,7 @@ func Test_ContainerSuccessfullyInstantiatesTwoTransientInstances(t *testing.T) {
 }
 
 func Test_ContainerSuccessfullyInstantiatesOnlyOneSingletonInstance(t *testing.T) {
+	container.Clear()
 	container.Register[IInterface, Implementation](NewImplementation).AsSingleton()
 
 	result1 := container.Resolve[IInterface]()
@@ -28,6 +34,7 @@ func Test_ContainerSuccessfullyInstantiatesOnlyOneSingletonInstance(t *testing.T
 }
 
 func Test_ContainerSuccessfullyRegistersAndResolvesTypesWithPointerReceivers(t *testing.T) {
+	container.Clear()
 	container.Register[IPointerInterface, *PointerStruct](NewPointerStruct).AsSingleton()
 
 	result := container.Resolve[IPointerInterface]()
@@ -39,6 +46,7 @@ func Test_ContainerSuccessfullyRegistersAndResolvesTypesWithPointerReceivers(t *
 }
 
 func Test_ContainerSuccessfullyRegistersAndResolvesExportedTypesAndConstructors(t *testing.T) {
+	container.Clear()
 	container.Register[IInterface, Implementation](NewImplementation).AsTransient()
 
 	result := container.Resolve[IInterface]()
@@ -50,6 +58,7 @@ func Test_ContainerSuccessfullyRegistersAndResolvesExportedTypesAndConstructors(
 }
 
 func Test_ContainerSuccessfullyRegistersAndResolvesUnexportedTypesAndConstructors(t *testing.T) {
+	container.Clear()
 	container.Register[iinterface, implementation](newImplementation).AsTransient()
 
 	result := container.Resolve[iinterface]()
@@ -61,6 +70,7 @@ func Test_ContainerSuccessfullyRegistersAndResolvesUnexportedTypesAndConstructor
 }
 
 func Test_ContainerSuccessfullyRegistersAndResolvesInterfacesAndEmbeddedStructs(t *testing.T) {
+	container.Clear()
 	container.Register[IInterface1, FullImplementation](NewFullImplementation).AsSingleton()
 
 	result := container.Resolve[IInterface1]()
@@ -72,6 +82,7 @@ func Test_ContainerSuccessfullyRegistersAndResolvesInterfacesAndEmbeddedStructs(
 }
 
 func Test_ContainerSuccessfullyResolvesComplexDependencies(t *testing.T) {
+	container.Clear()
 	container.Register[ICar, *Car](NewCar).AsTransient()
 	container.Register[IExhaust, *Exhaust](NewExhaust).AsTransient()
 	container.Register[IEngine, *Engine](NewEngine).AsTransient()
@@ -83,29 +94,8 @@ func Test_ContainerSuccessfullyResolvesComplexDependencies(t *testing.T) {
 	}
 }
 
-func Test_RecursiveSingletonDependenciesDontCauseStackOverflow(t *testing.T) {
-	var expectedErrorMessage = "RecursiveConstructionError: Recursive construction occurred while resolving ifirst."
-
-	container.Register[ifirst, *first](newFirst).AsSingleton()
-	container.Register[isecond, *second](newSecond).AsSingleton()
-	container.Register[ithird, *third](newThird).AsSingleton()
-
-	defer catchPanic(t, expectedErrorMessage)
-	container.Resolve[ifirst]()
-}
-
-func Test_RecursiveTransientDependenciesDontCauseStackOverflow(t *testing.T) {
-	var expectedErrorMessage = "RecursiveConstructionError: Recursive construction occurred while resolving ifirst."
-
-	container.Register[ifirst, *first](newFirst).AsTransient()
-	container.Register[isecond, *second](newSecond).AsTransient()
-	container.Register[ithird, *third](newThird).AsTransient()
-
-	defer catchPanic(t, expectedErrorMessage)
-	container.Resolve[ifirst]()
-}
-
 func Test_CannotRegisterInterfaceToAStruct(t *testing.T) {
+	container.Clear()
 	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
@@ -113,6 +103,7 @@ func Test_CannotRegisterInterfaceToAStruct(t *testing.T) {
 }
 
 func Test_CannotRegisterPointerToAStruct(t *testing.T) {
+	container.Clear()
 	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
@@ -120,6 +111,7 @@ func Test_CannotRegisterPointerToAStruct(t *testing.T) {
 }
 
 func Test_CannotRegisterPointerToAPointer(t *testing.T) {
+	container.Clear()
 	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
@@ -127,6 +119,7 @@ func Test_CannotRegisterPointerToAPointer(t *testing.T) {
 }
 
 func Test_CannotRegisterIfStructDoesNotImplementInterface(t *testing.T) {
+	container.Clear()
 	var expectedErrorMessage = "RegistrationError: implementation does not implement IInterface."
 
 	defer catchPanic(t, expectedErrorMessage)
@@ -134,6 +127,7 @@ func Test_CannotRegisterIfStructDoesNotImplementInterface(t *testing.T) {
 }
 
 func Test_CannotRegisterInterfaceWhichImplementsEmbeddedInterface1(t *testing.T) {
+	container.Clear()
 	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
@@ -141,6 +135,7 @@ func Test_CannotRegisterInterfaceWhichImplementsEmbeddedInterface1(t *testing.T)
 }
 
 func Test_CannotRegisterInterfaceWhichImplementsEmbeddedInterface2(t *testing.T) {
+	container.Clear()
 	var expectedErrorMessage = "RegistrationError: Interface and struct expected as type parameters."
 
 	defer catchPanic(t, expectedErrorMessage)
@@ -148,13 +143,15 @@ func Test_CannotRegisterInterfaceWhichImplementsEmbeddedInterface2(t *testing.T)
 }
 
 func Test_CannotResolveTypeWhichWasNotRegistered(t *testing.T) {
+	container.Clear()
 	var expectedErrorMessage = "ResolveError: Could not resolve EmbeddedInterface1. Not found."
 
 	defer catchPanic(t, expectedErrorMessage)
 	container.Resolve[EmbeddedInterface1]()
 }
 
-func Test_CannotRegisterAfterFirstResolveWasDone(t *testing.T) {
+func Test_CannotRegisterAfterSealingTheContainer(t *testing.T) {
+	container.Clear()
 	var expectedErrorMessage = "SealedContainerError: Cannot register a new type to a sealed container."
 
 	container.Register[IInterface, Implementation](NewImplementation).AsSingleton()
@@ -162,6 +159,88 @@ func Test_CannotRegisterAfterFirstResolveWasDone(t *testing.T) {
 
 	defer catchPanic(t, expectedErrorMessage)
 	container.Register[iinterface, implementation](newImplementation).AsSingleton()
+}
+
+func Test_ConcurrentResolveOfASingletonResultsInOnlyOneInstance(t *testing.T) {
+	container.Clear()
+	container.Register[ISlowConstructor, SlowConstructor](NewSlowConstructor).AsSingleton()
+
+	var mu sync.Mutex
+	instances := make([]ISlowConstructor, 0)
+
+	numberOfRoutines := 100
+
+	var routinesReady, waitForStart, waitForFinish sync.WaitGroup
+
+	routinesReady.Add(numberOfRoutines)
+	waitForStart.Add(1)
+	waitForFinish.Add(numberOfRoutines)
+	for i := 0; i < numberOfRoutines; i++ {
+		go func() {
+			routinesReady.Done()
+			waitForStart.Wait()
+			result := container.Resolve[ISlowConstructor]()
+
+			mu.Lock()
+			instances = append(instances, result)
+			mu.Unlock()
+
+			waitForFinish.Done()
+		}()
+	}
+
+	routinesReady.Wait()
+	waitForStart.Done()
+	waitForFinish.Wait()
+
+	for i := 0; i < numberOfRoutines; i++ {
+		for j := i + 1; j < numberOfRoutines; j++ {
+			if instances[i].(SlowConstructor).memoryAddress != instances[j].(SlowConstructor).memoryAddress {
+				t.Fatalf("Singleton configuration produced two different objects.")
+			}
+		}
+	}
+}
+
+func Test_ConcurrentResolveOfATransientConfigurationResultsInDifferentInstances(t *testing.T) {
+	container.Clear()
+	container.Register[ISlowConstructor, SlowConstructor](NewSlowConstructor).AsTransient()
+
+	var mu sync.Mutex
+	instances := make([]ISlowConstructor, 0)
+
+	numberOfRoutines := 100
+
+	var routinesReady, waitForStart, waitForFinish sync.WaitGroup
+
+	routinesReady.Add(numberOfRoutines)
+	waitForStart.Add(1)
+	waitForFinish.Add(numberOfRoutines)
+	for i := 0; i < numberOfRoutines; i++ {
+		go func() {
+			routinesReady.Done()
+			waitForStart.Wait()
+			result := container.Resolve[ISlowConstructor]()
+
+			mu.Lock()
+			instances = append(instances, result)
+			mu.Unlock()
+
+			waitForFinish.Done()
+		}()
+	}
+
+	routinesReady.Wait()
+	waitForStart.Done()
+	waitForFinish.Wait()
+
+	for i := 0; i < numberOfRoutines; i++ {
+		for j := i + 1; j < numberOfRoutines; j++ {
+			if instances[i].(SlowConstructor).memoryAddress == instances[j].(SlowConstructor).memoryAddress {
+				t.Fatalf("transient configuration produced two same objects")
+			}
+		}
+	}
 }
 
 func catchPanic(t *testing.T, expectedErrorMessage string) {

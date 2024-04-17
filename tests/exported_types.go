@@ -1,3 +1,5 @@
+//go:build test
+
 package tests
 
 type IInterface interface {
@@ -19,5 +21,5 @@ func NewImplementation() Implementation {
 }
 
 func (s Implementation) Method1() {
-	panic("Not implemented.")
+	panic("not implemented")
 }

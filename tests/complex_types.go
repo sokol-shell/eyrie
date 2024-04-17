@@ -1,3 +1,5 @@
+//go:build test
+
 package tests
 
 import "github.com/ivan-ivkovic/eyrie/container"

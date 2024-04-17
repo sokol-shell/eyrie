@@ -1,11 +1,14 @@
 package configuration
 
-import "reflect"
+import (
+	"reflect"
+	"sync"
+)
 
 type TransientConfiguration[T any] struct {
 	implementingType reflect.Type
 	constructor      func() T
-	resolving        bool
+	resolveSemaphore sync.Mutex
 }
 
 func NewTransientConfiguration[T any](implementingType reflect.Type, constructor func() T) *TransientConfiguration[T] {
@@ -16,11 +19,8 @@ func NewTransientConfiguration[T any](implementingType reflect.Type, constructor
 }
 
 func (tc *TransientConfiguration[T]) GetOrCreateInstance() (any, error) {
-	if tc.resolving {
-		return nil, newConfigurationError(RecursiveConstruction)
-	}
-	tc.resolving = true
-	defer func() { tc.resolving = false }()
+	tc.resolveSemaphore.Lock()
+	defer tc.resolveSemaphore.Unlock()
 
 	var instance T = tc.constructor()
 

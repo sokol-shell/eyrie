@@ -2,8 +2,9 @@ package container
 
 import (
 	"fmt"
-	"github.com/ivan-ivkovic/eyrie/internal/configuration"
 	"reflect"
+
+	"github.com/ivan-ivkovic/eyrie/internal/configuration"
 )
 
 func Register[I any, S any](constructor func() S) Registrar[I, S] {
@@ -32,20 +33,24 @@ func Resolve[I any]() I {
 
 	config := getContainer().getConfiguration(interfaceType)
 	instance, err := config.GetOrCreateInstance()
-	if err == nil {
-		return instance.(I)
+	if err != nil {
+		switch code := err.(*configuration.ConfigurationError).Code; code {
+		case configuration.RecursiveConstruction:
+			msg := fmt.Sprintf("Recursive construction occurred while resolving %s.", interfaceType.Name())
+			panic(newRecursiveConstructionError(msg))
+		default:
+			panic("Not reachable.")
+		}
 	}
 
-	switch code := err.(*configuration.ConfigurationError).Code; code {
-	case configuration.RecursiveConstruction:
-		msg := fmt.Sprintf("Recursive construction occurred while resolving %s.", interfaceType.Name())
-		panic(newRecursiveConstructionError(msg))
-	default:
-		panic("Not reachable.")
-	}
+	return instance.(I)
 }
 
 func Seal() {
 	c := getContainer()
 	c.seal()
+}
+
+func Clear() {
+	c = nil
 }

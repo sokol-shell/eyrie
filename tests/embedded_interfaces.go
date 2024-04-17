@@ -1,3 +1,5 @@
+//go:build test
+
 package tests
 
 type EmbeddedInterface1 interface {
@@ -10,7 +12,7 @@ type FinalInterface1 interface {
 }
 
 func NewFinalInterface1() FinalInterface1 {
-	panic("Not implemented.")
+	panic("not implemented")
 }
 
 type EmbeddedInterface2 interface {
@@ -23,5 +25,5 @@ type FinalInterface2 interface {
 }
 
 func NewFinalInterface2() FinalInterface2 {
-	panic("Not implemented.")
+	panic("not implemented")
 }

@@ -1,3 +1,5 @@
+//go:build test
+
 package tests
 
 type IPointerInterface interface {
@@ -11,5 +13,5 @@ func NewPointerStruct() *PointerStruct {
 }
 
 func (ps *PointerStruct) PointerReceiverMethod() {
-	panic("Not implemented.")
+	panic("not implemented")
 }

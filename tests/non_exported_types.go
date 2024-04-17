@@ -1,3 +1,5 @@
+//go:build test
+
 package tests
 
 type iinterface interface {
